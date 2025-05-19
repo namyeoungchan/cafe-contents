@@ -1,12 +1,37 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 import './Header.css';
 
 const Header = ({ activeTab, onTabChange }) => {
+  const navigate = useNavigate();
+  const { user, logout } = useContext(AuthContext);
+  
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+  
   return (
     <header className="header">
-      <div className="container">
-        <h1 className="title">test</h1>
-        <p className="subtitle"></p>
+      <div className="container header-container">
+        <div className="header-left">
+          <h1 className="title">카페 즐길거리</h1>
+          <p className="subtitle">당신의 카페 시간을 더 즐겁게</p>
+        </div>
+        
+        {user && (
+          <div className="user-menu">
+            <div className="user-info">
+              <span className="user-greeting">
+                {user.email ? user.email : (user.nickname || '회원')}
+              </span>
+            </div>
+            <button className="logout-btn" onClick={handleLogout}>
+              로그아웃
+            </button>
+          </div>
+        )}
       </div>
       
       <nav className="nav">

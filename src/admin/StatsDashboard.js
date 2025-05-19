@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { 
   getAllWinners, 
   getAllPrizes, 
-  getTotalWinnersCount 
 } from '../utils/simpleDatabase';
 import { toast } from 'react-toastify';
 import './StatsDashboard.css';

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -14,9 +14,32 @@ import MoodMusic from './components/MoodMusic';
 import Roulette from './Roulette';
 import AdminLogin from './admin/AdminLogin';
 import AdminDashboard from './admin/AdminDashboard';
+import Login from './components/Login';
+import KakaoCallback from './components/KakaoCallback';
+import { AuthProvider, AuthContext } from './context/AuthContext';
+import { ModalProvider } from './context/ModalContext';
+import PrivateRoute from './components/PrivateRoute';
 
 // 데이터베이스 초기화 (SQL.js 대신 localStorage 사용)
 import { initDatabase } from './utils/simpleDatabase';
+
+// 로그인 상태에 따라 리디렉션하는 컴포넌트
+const AuthRedirect = () => {
+  const { isLoggedIn, loading } = useContext(AuthContext);
+  
+  // 로딩 중일 때는 로딩 화면 표시
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>잠시만 기다려주세요...</p>
+      </div>
+    );
+  }
+  
+  // 로그인 상태에 따라 리디렉션
+  return isLoggedIn ? <Navigate to="/user" replace /> : <Navigate to="/login" replace />;
+};
 
 function App() {
   const [activeTab, setActiveTab] = useState(localStorage.getItem('activeTab') || 'fortune');
@@ -61,8 +84,8 @@ function App() {
     return sessionStorage.getItem('admin_logged_in') === 'true';
   };
 
-  // Protected 라우트 컴포넌트
-  const ProtectedRoute = ({ children }) => {
+  // 관리자용 Protected 라우트 컴포넌트
+  const AdminProtectedRoute = ({ children }) => {
     if (!isAdminAuthenticated()) {
       return <Navigate to="/admin" replace />;
     }
@@ -71,41 +94,56 @@ function App() {
   };
 
   return (
-    <Router>
-      <ToastContainer position="top-right" autoClose={3000} />
-      <Routes>
-        <Route
-            path="/user"
-            element={
-              <div className="app">
-                <Header activeTab={activeTab} onTabChange={handleTabChange} />
-                <main className="main">
-                  <div className="container">
-                    {activeTab === 'fortune' && <FortuneTeller />}
-                    {activeTab === 'wordgame' && <WordGame />}
-                    {activeTab === 'quiz' && <CoffeeQuiz />}
-                    {activeTab === 'mood' && <MoodMusic />}
-                    {activeTab === 'roulette' && <Roulette />}
+    <AuthProvider>
+      <ModalProvider>
+        <Router>
+          <ToastContainer position="top-right" autoClose={3000} />
+          <Routes>
+            {/* 홈 화면 - 로그인 여부에 따라 적절한 페이지로 리디렉션 */}
+            <Route path="/" element={
+              <AuthRedirect />
+            } />
+            
+            {/* 로그인 관련 라우트 */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/oauth/callback/kakao" element={<KakaoCallback />} />
+            
+            {/* 사용자 콘텐츠 라우트 - 로그인 필요 */}
+            <Route
+              path="/user"
+              element={
+                <PrivateRoute>
+                  <div className="app">
+                    <Header activeTab={activeTab} onTabChange={handleTabChange} />
+                    <main className="main">
+                      <div className="container">
+                        {activeTab === 'fortune' && <FortuneTeller />}
+                        {activeTab === 'wordgame' && <WordGame />}
+                        {activeTab === 'quiz' && <CoffeeQuiz />}
+                        {activeTab === 'mood' && <MoodMusic />}
+                        {activeTab === 'roulette' && <Roulette />}
+                      </div>
+                    </main>
+                    <Footer />
                   </div>
-                </main>
-                <Footer />
-              </div>
-            }
-        />
-        {/* 관리자 라우트 */}
-        <Route path="/admin" element={<AdminLogin />} />
-        <Route
-          path="/admin/dashboard"
-          element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* 메인 앱 라우트 */}
-      </Routes>
-    </Router>
+                </PrivateRoute>
+              }
+            />
+            
+            {/* 관리자 라우트 */}
+            <Route path="/admin" element={<AdminLogin />} />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <AdminProtectedRoute>
+                  <AdminDashboard />
+                </AdminProtectedRoute>
+              }
+            />
+          </Routes>
+        </Router>
+      </ModalProvider>
+    </AuthProvider>
   );
 }
 

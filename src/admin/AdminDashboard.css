@@ -356,17 +356,24 @@
 }
 
 /* 당첨자 목록 스타일 */
+.admin-winners-stats {
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
 .admin-winners-list {
   background-color: white;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
 }
 
 .admin-winner-header,
 .admin-winner-item {
   display: grid;
-  grid-template-columns: 1fr 1fr 2fr 1fr;
+  grid-template-columns: 1fr 1fr 1.5fr 1.5fr 1fr 1fr;
   padding: 12px 16px;
   align-items: center;
 }
@@ -380,10 +387,132 @@
 
 .admin-winner-item {
   border-bottom: 1px solid #eee;
+  transition: background-color 0.2s;
+}
+
+.admin-winner-item:hover {
+  background-color: #f9f9f9;
+}
+
+.admin-winner-item.used {
+  background-color: #f8f8f8;
 }
 
 .admin-winner-item:last-child {
   border-bottom: none;
+}
+
+.admin-usage-status {
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  display: inline-block;
+}
+
+.admin-usage-status.used {
+  background-color: #e6f7e6;
+  color: #2c662d;
+}
+
+.admin-usage-status.unused {
+  background-color: #f8f8f8;
+  color: #999;
+}
+
+.admin-action-btn.mark-used {
+  color: #4caf50;
+}
+
+.admin-action-btn.mark-used:hover {
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.admin-action-btn.mark-unused {
+  color: #ff9800;
+}
+
+.admin-action-btn.mark-unused:hover {
+  background-color: rgba(255, 152, 0, 0.1);
+}
+
+/* 필터링 섹션 스타일 */
+.admin-filter-section {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+}
+
+.admin-filter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-filter-row {
+  display: flex;
+  gap: 16px;
+}
+
+.admin-filter-group {
+  flex: 1;
+}
+
+.admin-filter-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.admin-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  background-color: white;
+}
+
+.admin-select:focus {
+  outline: none;
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 2px rgba(212, 165, 116, 0.2);
+}
+
+.admin-filter-buttons {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.admin-filter-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.admin-filter-btn.apply {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.admin-filter-btn.apply:hover {
+  background-color: #594022;
+}
+
+.admin-filter-btn.reset {
+  background-color: #f0f0f0;
+  color: #555;
+}
+
+.admin-filter-btn.reset:hover {
+  background-color: #e0e0e0;
 }
 
 .admin-no-data {
@@ -456,7 +585,11 @@
 
 @media (max-width: 768px) {
   .admin-prize-header,
-  .admin-prize-item,
+  .admin-prize-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
   .admin-winner-header,
   .admin-winner-item {
     grid-template-columns: 1fr;
@@ -473,6 +606,16 @@
     border-bottom: 1px solid #eee;
   }
   
+  .admin-filter-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .admin-filter-buttons {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
   .admin-prize-name,
   .admin-prize-probability,
   .admin-prize-status,
@@ -480,9 +623,12 @@
   .admin-winner-phone,
   .admin-winner-order,
   .admin-winner-prize,
-  .admin-winner-date {
+  .admin-winner-date,
+  .admin-winner-usage,
+  .admin-winner-actions {
     position: relative;
-    padding-left: 100px;
+    padding-left: 120px;
+    min-height: 32px;
   }
   
   .admin-prize-name:before,
@@ -492,7 +638,9 @@
   .admin-winner-phone:before,
   .admin-winner-order:before,
   .admin-winner-prize:before,
-  .admin-winner-date:before {
+  .admin-winner-date:before,
+  .admin-winner-usage:before,
+  .admin-winner-actions:before {
     position: absolute;
     left: 0;
     font-weight: 600;
@@ -507,4 +655,6 @@
   .admin-winner-order:before { content: "주문번호:"; }
   .admin-winner-prize:before { content: "당첨 경품:"; }
   .admin-winner-date:before { content: "당첨 일시:"; }
+  .admin-winner-usage:before { content: "사용 여부:"; }
+  .admin-winner-actions:before { content: "관리:"; }
 }

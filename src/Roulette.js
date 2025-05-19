@@ -1,5 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import './Roulette.css';
+import { AuthContext } from './context/AuthContext';
+import { ModalContext } from './context/ModalContext';
+import WinningHistory from './components/WinningHistory';
 import { 
   getActivePrizes, 
   getTodayWinnersCount, 
@@ -7,7 +10,7 @@ import {
   addWinner,
   checkParticipation,
   isDatabaseReady
-} from './utils/simpleDatabase'; // 수정됨: simpleDatabase 사용
+} from './utils/simpleDatabase';
 
 // 기본 경품 (데이터베이스 초기화 전 또는 오류 시 사용)
 const defaultPrizes = [
@@ -18,7 +21,8 @@ const defaultPrizes = [
 ];
 
 const Roulette = () => {
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const { user } = useContext(AuthContext);
+  const { openModal, closeModal } = useContext(ModalContext);
   const [orderNumber, setOrderNumber] = useState('');
   const [adminCode, setAdminCode] = useState('');
   const [prizes, setPrizes] = useState(defaultPrizes);
@@ -82,14 +86,15 @@ const Roulette = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // 입력값 검증
-    if (!phoneNumber || !orderNumber || !adminCode) {
-      alert('모든 정보를 입력해주세요.');
+    // 카카오 로그인 여부 확인
+    if (!user || !user.id) {
+      alert('로그인이 필요한 서비스입니다. 다시 로그인해주세요.');
       return;
     }
-
-    if (phoneNumber.length < 10) {
-      alert('유효한 전화번호를 입력해주세요.');
+    
+    // 입력값 검증
+    if (!orderNumber || !adminCode) {
+      alert('모든 정보를 입력해주세요.');
       return;
     }
 
@@ -99,8 +104,9 @@ const Roulette = () => {
       return;
     }
 
-    // 이미 참여했는지 확인
-    if (checkParticipation(phoneNumber, orderNumber)) {
+    // 이미 참여했는지 확인 (카카오 계정 ID 또는 전화번호 사용)
+    const userPhoneNumber = user.phoneNumber || user.id.toString();
+    if (checkParticipation(userPhoneNumber, orderNumber)) {
       alert('이미 오늘 참여하셨습니다.');
       return;
     }
@@ -160,26 +166,72 @@ const Roulette = () => {
       setSpinning(false);
       setResult(selectedPrize);
       
-      // 당첨자 정보 저장
-      addWinner(phoneNumber, orderNumber, selectedPrize.id, selectedPrize.name);
+      // 당첨자 정보 저장 (카카오 계정 ID 또는 전화번호 사용)
+      const userPhoneNumber = user.phoneNumber || user.id.toString();
+      const result = addWinner(userPhoneNumber, orderNumber, selectedPrize.id, selectedPrize.name);
+      console.log('당첨자 추가 결과:', result);
       
       // 폼 초기화
-      setPhoneNumber('');
       setOrderNumber('');
       setAdminCode('');
       setFormSubmitted(false);
       
       // 데이터 다시 로드 (당첨자 수 갱신)
       loadData();
+      
+      // 결과 모달 표시
+      showResultModal(selectedPrize);
     }, 5000);
   };
 
   const resetForm = () => {
-    setPhoneNumber('');
     setOrderNumber('');
     setAdminCode('');
     setFormSubmitted(false);
     setResult(null);
+    closeModal();
+  };
+
+  // 결과 모달 표시
+  const showResultModal = (prize) => {
+    const resultContent = (
+      <div className="result-modal-content">
+        <div className="result-message">
+          {prize.name === '다음 기회에' ? (
+            <>
+              <p>아쉽게도 당첨되지 않았습니다. 다음에 다시 도전해보세요!</p>
+              <p className="result-note">* '다음 기회에'는 당첨 횟수에 포함되지 않습니다.</p>
+            </>
+          ) : (
+            <p>축하합니다! <strong>{prize.name}</strong>에 당첨되셨습니다!</p>
+          )}
+          <div className="result-buttons">
+            <button className="btn btn-primary" onClick={showHistoryModal}>
+              내 당첨내역 보기
+            </button>
+            <button className="btn btn-secondary" onClick={resetForm}>
+              닫기
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+    
+    openModal("룰렛 결과", resultContent);
+  };
+
+  // 당첨내역 모달 표시
+  const showHistoryModal = () => {
+    const historyContent = (
+      <div className="history-modal-content">
+        <WinningHistory onClose={closeModal} />
+      </div>
+    );
+    
+    closeModal(); // 이전 모달 닫기
+    setTimeout(() => {
+      openModal("내 당첨내역", historyContent, "large");
+    }, 100);
   };
 
   return (
@@ -194,20 +246,22 @@ const Roulette = () => {
         </div>
       )}
       
+      {/* 당첨내역 버튼 추가 */}
+      <div className="history-button-container">
+        <button 
+          className="btn btn-secondary"
+          onClick={showHistoryModal}
+        >
+          내 당첨내역 보기
+        </button>
+      </div>
+      
       {!formSubmitted ? (
         <form onSubmit={handleSubmit} className="roulette-form">
-          <div className="form-group">
-            <label htmlFor="phoneNumber">전화번호</label>
-            <input
-              type="tel"
-              id="phoneNumber"
-              className="input"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="전화번호를 입력하세요"
-              required
-              disabled={!canPlay}
-            />
+          <div className="user-info-display">
+            <p>
+              <strong>로그인 정보:</strong> {user ? user.email || '이메일 정보 없음' : '로그인 필요'}
+            </p>
           </div>
           
           <div className="form-group">
@@ -241,7 +295,7 @@ const Roulette = () => {
           <button 
             type="submit" 
             className="btn btn-primary"
-            disabled={!canPlay}
+            disabled={!canPlay || !user}
           >
             참여하기
           </button>
@@ -293,22 +347,6 @@ const Roulette = () => {
           {spinning && (
             <div className="spinning-message">
               <p>룰렛이 돌아가는 중...</p>
-            </div>
-          )}
-          
-          {result && (
-            <div className="result-message">
-              <h3 className="result-title">결과</h3>
-              <p className="result-content">
-                {result.name === '다음 기회에' ? (
-                  <span>아쉽게도 당첨되지 않았습니다. 다음에 다시 도전해보세요!</span>
-                ) : (
-                  <span>축하합니다! <strong>{result.name}</strong>에 당첨되셨습니다!</span>
-                )}
-              </p>
-              <button className="btn btn-secondary" onClick={resetForm}>
-                다시 참여하기
-              </button>
             </div>
           )}
         </div>

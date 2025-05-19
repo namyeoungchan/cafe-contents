@@ -199,7 +199,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 9999; /* z-index 값 증가 */
   backdrop-filter: blur(3px);
   padding: 20px;
 }
@@ -309,6 +309,36 @@
 .form-group .form-control {
   flex: 1;
   margin-bottom: 0;
+}
+
+/* 카카오 로그인 관련 스타일 */
+.callback-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 20px;
+  text-align: center;
+}
+
+.callback-loading,
+.callback-error {
+  max-width: 500px;
+  padding: 30px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.callback-error h2 {
+  color: var(--primary-color);
+  margin-bottom: 15px;
+}
+
+.callback-loading h2 {
+  color: var(--primary-color);
+  margin-bottom: 15px;
 }
 
 /* 반응형 */

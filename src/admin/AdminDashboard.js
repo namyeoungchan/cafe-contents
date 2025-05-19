@@ -9,8 +9,12 @@ import {
   deletePrize,
   getAllWinners,
   getTotalWinnersCount,
-  initDatabase
-} from '../utils/simpleDatabase'; // initDatabase 추가
+  initDatabase,
+  getFilteredWinners,
+  updateWinnerUsage,
+  getData,
+  resetDatabase
+} from '../utils/simpleDatabase'; // resetDatabase 함수 추가
 import './AdminDashboard.css';
 import { toast } from 'react-toastify';
 import ExportImportSection from './ExportImportSection';
@@ -40,6 +44,58 @@ const AdminDashboard = () => {
   const [totalPages, setTotalPages] = useState(1);
   const winnersPerPage = 10;
   const [isLoading, setIsLoading] = useState(true);
+  const [totalWinners, setTotalWinners] = useState(0);
+  
+  // 필터링 상태
+  const [filters, setFilters] = useState({
+    prizeId: '',
+    prizeName: '',
+    isUsed: '',
+    startDate: '',
+    endDate: '',
+    phoneNumber: ''
+  });
+  
+  // 필터 변경 핸들러
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  // 사용 여부 필터 핸들러
+  const handleUsageFilterChange = (e) => {
+    const value = e.target.value;
+    setFilters(prev => ({
+      ...prev,
+      isUsed: value === '' ? '' : parseInt(value)
+    }));
+  };
+  
+  // 필터 적용 핸들러
+  const applyFilters = () => {
+    setCurrentPage(1); // 필터 적용 시 첫 페이지로 이동
+    loadFilteredWinners();
+  };
+  
+  // 필터 초기화 핸들러
+  const resetFilters = () => {
+    setFilters({
+      prizeId: '',
+      prizeName: '',
+      isUsed: '',
+      startDate: '',
+      endDate: '',
+      phoneNumber: ''
+    });
+    setCurrentPage(1);
+    // 필터 초기화 후 데이터 다시 로드
+    setTimeout(() => {
+      loadFilteredWinners();
+    }, 0);
+  };
   const loadData = useCallback(() => {
     const settings = getAdminSettings();
     if (!settings.error) {
@@ -52,21 +108,35 @@ const AdminDashboard = () => {
     loadPrizes();
   }, []); // 의존성 배열 비워두기
 
-  const loadWinners = useCallback(() => {
-    const offset = (currentPage - 1) * winnersPerPage;
-    const winnersData = getAllWinners(winnersPerPage, offset);
-
-    if (!winnersData.error) {
-      setWinners(winnersData);
-
-      const totalCount = getTotalWinnersCount();
-      if (typeof totalCount === 'number') {
-        setTotalPages(Math.ceil(totalCount / winnersPerPage));
+  // 필터링된 당첨자 데이터 로드
+  const loadFilteredWinners = useCallback(() => {
+    try {
+      const offset = (currentPage - 1) * winnersPerPage;
+      
+      // 데이터베이스 상태 확인
+      const dbData = getData ? getData() : { winners: [] };
+      console.log('현재 데이터베이스 상태:', dbData);
+      
+      const result = getFilteredWinners(filters, winnersPerPage, offset);
+      console.log('필터링된 당첨자 결과:', result);
+      
+      if (result && result.winners) {
+        setWinners(result.winners);
+        setTotalWinners(result.totalCount);
+        setTotalPages(Math.ceil(result.totalCount / winnersPerPage));
+      } else {
+        toast.error('당첨자 목록을 불러오는데 실패했습니다.');
       }
-    } else {
-      toast.error('당첨자 목록을 불러오는데 실패했습니다.');
+    } catch (error) {
+      console.error('당첨자 목록 로드 오류:', error);
+      toast.error('당첨자 데이터 로드 중 오류가 발생했습니다.');
     }
-  }, [currentPage]); // currentPage에 반응해야 함
+  }, [currentPage, filters, winnersPerPage]); // 의존성 추가
+  
+  // 호환성을 위해 기존 loadWinners 함수 유지
+  const loadWinners = useCallback(() => {
+    loadFilteredWinners();
+  }, [loadFilteredWinners]);
 
   useEffect(() => {
     const isLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true';
@@ -80,6 +150,10 @@ const AdminDashboard = () => {
       try {
         await initDatabase();
         loadData();
+        // 당첨자 관리 탭이 활성화되어 있으면 바로 당첨자 목록 로드
+        if (activeTab === 'winners') {
+          loadWinners();
+        }
       } catch (error) {
         console.error('데이터베이스 초기화 오류:', error);
         toast.error('다시 로그인해주세요.');
@@ -91,23 +165,26 @@ const AdminDashboard = () => {
     };
 
     checkDatabase();
-  }, [navigate, loadData]);
+  }, [navigate, loadData, activeTab, loadWinners]);
 
   useEffect(() => {
     if (activeTab === 'winners') {
+      loadPrizes(); // 당첨자 관리 탭에서도 경품 목록 로드
       loadWinners();
+    } else if (activeTab === 'prizes') {
+      loadPrizes();
     }
   }, [activeTab, currentPage, loadWinners]);
 
   // 경품 목록 로드
-  const loadPrizes = () => {
+  const loadPrizes = useCallback(() => {
     const allPrizes = getAllPrizes();
     if (!allPrizes.error) {
       setPrizes(allPrizes);
     } else {
       toast.error('경품 목록을 불러오는데 실패했습니다.');
     }
-  };
+  }, []);
 
   // 관리자 설정 저장
   const handleSaveSettings = () => {
@@ -266,13 +343,34 @@ const AdminDashboard = () => {
             </button>
             <button
                 className={`admin-nav-btn ${activeTab === 'prizes' ? 'active' : ''}`}
-                onClick={() => setActiveTab('prizes')}
+                onClick={() => {
+                  setActiveTab('prizes');
+                  loadPrizes();
+                }}
             >
               경품 관리
             </button>
             <button
                 className={`admin-nav-btn ${activeTab === 'winners' ? 'active' : ''}`}
-                onClick={() => setActiveTab('winners')}
+                onClick={() => {
+                  setActiveTab('winners');
+                  // 필터 초기화
+                  setFilters({
+                    prizeId: '',
+                    prizeName: '',
+                    isUsed: '',
+                    startDate: '',
+                    endDate: '',
+                    phoneNumber: ''
+                  });
+                  setCurrentPage(1);
+                  
+                  // 데이터 로드
+                  setTimeout(() => {
+                    loadPrizes();
+                    loadWinners();
+                  }, 0);
+                }}
             >
               당첨자 관리
             </button>
@@ -531,6 +629,134 @@ const AdminDashboard = () => {
             {activeTab === 'winners' && (
                 <div className="admin-panel-content">
                   <h2 className="admin-panel-title">당첨자 관리</h2>
+                  
+                  {/* 필터링 섹션 */}
+                  <div className="admin-filter-section">
+                    <h3 className="admin-section-title">검색 및 필터</h3>
+                    <div className="admin-filter-form">
+                      <div className="admin-filter-row">
+                        <div className="admin-filter-group">
+                          <label>전화번호 검색</label>
+                          <input
+                            type="text"
+                            className="admin-input"
+                            name="phoneNumber"
+                            value={filters.phoneNumber}
+                            onChange={handleFilterChange}
+                            placeholder="전화번호 입력"
+                          />
+                        </div>
+                        
+                      <div className="admin-filter-group">
+                          <label>경품 선택</label>
+                          <select
+                            className="admin-select"
+                            name="prizeId"
+                            value={filters.prizeId}
+                            onChange={(e) => {
+                              const selectedPrizeId = e.target.value;
+                              
+                              // 선택된 경품 ID에 따라 경품 이름 자동 설정
+                              const selectedPrize = prizes.find(p => p.id.toString() === selectedPrizeId);
+                              
+                              setFilters(prev => ({
+                                ...prev,
+                                prizeId: selectedPrizeId,
+                                prizeName: selectedPrize ? selectedPrize.name : ''
+                              }));
+                              
+                              console.log('경품 필터 변경:', {
+                                prizeId: selectedPrizeId,
+                                prizeName: selectedPrize ? selectedPrize.name : '',
+                                selectedPrize
+                              });
+                            }}
+                          >
+                            <option value="">모든 경품</option>
+                            {prizes.map(prize => (
+                              <option key={prize.id} value={prize.id}>
+                                {prize.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        
+                        <div className="admin-filter-group">
+                          <label>사용 여부</label>
+                          <select
+                            className="admin-select"
+                            name="isUsed"
+                            value={filters.isUsed}
+                            onChange={handleUsageFilterChange}
+                          >
+                            <option value="">전체</option>
+                            <option value="1">사용 완료</option>
+                            <option value="0">미사용</option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div className="admin-filter-row">
+                        <div className="admin-filter-group">
+                          <label>시작 날짜</label>
+                          <input
+                            type="date"
+                            className="admin-input"
+                            name="startDate"
+                            value={filters.startDate}
+                            onChange={handleFilterChange}
+                          />
+                        </div>
+                        
+                        <div className="admin-filter-group">
+                          <label>종료 날짜</label>
+                          <input
+                            type="date"
+                            className="admin-input"
+                            name="endDate"
+                            value={filters.endDate}
+                            onChange={handleFilterChange}
+                          />
+                        </div>
+                        
+                        <div className="admin-filter-buttons">
+                          <button
+                            className="admin-filter-btn apply"
+                            onClick={applyFilters}
+                          >
+                            필터 적용
+                          </button>
+                          <button
+                            className="admin-filter-btn reset"
+                            onClick={resetFilters}
+                          >
+                            필터 초기화
+                          </button>
+                          
+                          {/* 개발자용 디버깅 버튼 */}
+                          <button 
+                            className="admin-filter-btn reset"
+                            style={{ backgroundColor: '#f44336', color: 'white' }}
+                            onClick={() => {
+                              if (window.confirm('주의: 모든 데이터가 초기화됩니다. 계속하시겠습니까?')) {
+                                resetDatabase();
+                                toast.success('데이터베이스가 초기화되었습니다. 페이지를 새로고침해주세요.');
+                                setTimeout(() => {
+                                  window.location.reload();
+                                }, 1500);
+                              }
+                            }}
+                          >
+                            DB 초기화
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="admin-winners-stats">
+                    <p>총 {totalWinners}명의 당첨자 중 {winners.length}명이 표시됩니다.</p>
+                  </div>
 
                   <div className="admin-winners-list">
                     <div className="admin-winner-header">
@@ -538,16 +764,39 @@ const AdminDashboard = () => {
                       <div className="admin-winner-order">주문번호</div>
                       <div className="admin-winner-prize">당첨 경품</div>
                       <div className="admin-winner-date">당첨 일시</div>
+                      <div className="admin-winner-usage">사용 여부</div>
+                      <div className="admin-winner-actions">관리</div>
                     </div>
 
                     {winners.length > 0 ? (
                         winners.map(winner => (
-                            <div key={winner.id} className="admin-winner-item">
+                            <div key={winner.id} className={`admin-winner-item ${winner.is_used === 1 ? 'used' : ''}`}>
                               <div className="admin-winner-phone">{winner.phone_number}</div>
                               <div className="admin-winner-order">{winner.order_number}</div>
                               <div className="admin-winner-prize">{winner.prize_name}</div>
                               <div className="admin-winner-date">
                                 {new Date(winner.win_date).toLocaleString('ko-KR')}
+                              </div>
+                              <div className="admin-winner-usage">
+                                <span className={`admin-usage-status ${winner.is_used === 1 ? 'used' : 'unused'}`}>
+                                  {winner.is_used === 1 ? '사용 완료' : '미사용'}
+                                </span>
+                              </div>
+                              <div className="admin-winner-actions">
+                                <button
+                                  className={`admin-action-btn ${winner.is_used === 1 ? 'mark-unused' : 'mark-used'}`}
+                                  onClick={() => {
+                                    const result = updateWinnerUsage(winner.id, winner.is_used === 0 ? 1 : 0);
+                                    if (!result.error) {
+                                      toast.success(`사용 상태가 변경되었습니다.`);
+                                      loadWinners();
+                                    } else {
+                                      toast.error('상태 변경에 실패했습니다.');
+                                    }
+                                  }}
+                                >
+                                  {winner.is_used === 1 ? '미사용 처리' : '사용 처리'}
+                                </button>
                               </div>
                             </div>
                         ))
@@ -568,8 +817,9 @@ const AdminDashboard = () => {
                         </button>
 
                         <span className="admin-pagination-info">
-                    {currentPage} / {totalPages}
-                  </span>
+                          {currentPage} / {totalPages} 페이지
+                          (총 {totalWinners}명)
+                        </span>
 
                         <button
                             className="admin-pagination-btn"
