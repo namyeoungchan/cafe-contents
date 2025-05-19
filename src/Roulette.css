@@ -1,0 +1,167 @@
+.roulette-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.roulette-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.roulette-game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.roulette-wheel-container {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin-bottom: 30px;
+}
+
+.roulette-wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+  border: 4px solid #6b4226;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transform-origin: center;
+}
+
+.roulette-pointer {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-top: 25px solid #d4a574;
+  z-index: 10;
+}
+
+.roulette-segment {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  transform-origin: bottom right;
+  top: 0;
+  right: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.segment-text {
+  position: absolute;
+  padding-top: 20px;
+  width: 70px;
+  text-align: center;
+  transform-origin: bottom center;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spin-instruction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.spin-instruction p {
+  font-weight: 500;
+  color: #666;
+}
+
+.spinning-message {
+  margin-top: 16px;
+  font-weight: 500;
+  color: #d4a574;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.result-message {
+  margin-top: 20px;
+  padding: 16px;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+  text-align: center;
+  animation: fadeIn 0.5s ease;
+}
+
+.result-title {
+  font-size: 1.2rem;
+  color: #6b4226;
+  margin-bottom: 10px;
+}
+
+.result-content {
+  margin-bottom: 16px;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 576px) {
+  .roulette-wheel-container {
+    width: 250px;
+    height: 250px;
+  }
+  
+  .segment-text {
+    padding-top: 15px;
+    width: 50px;
+    font-size: 10px;
+  }
+}
