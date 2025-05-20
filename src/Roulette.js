@@ -98,8 +98,11 @@ const Roulette = () => {
       return;
     }
 
-    // 관리자 코드 검증 (기본값 1234)
-    if (adminCode !== '1234') {
+    // 관리자 코드 검증
+    const settings = getAdminSettings();
+    const correctCode = settings && settings.rouletteAdminCode ? settings.rouletteAdminCode : '1234';
+    
+    if (adminCode !== correctCode) {
       alert('관리자 코드가 일치하지 않습니다.');
       return;
     }

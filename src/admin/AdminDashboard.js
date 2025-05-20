@@ -31,6 +31,7 @@ const AdminDashboard = () => {
   const [adminUsername, setAdminUsername] = useState('admin');
   const [adminPassword, setAdminPassword] = useState('');
   const [adminPasswordConfirm, setAdminPasswordConfirm] = useState('');
+  const [rouletteAdminCode, setRouletteAdminCode] = useState('1234');
 
   // 경품 관리 상태
   const [prizes, setPrizes] = useState([]);
@@ -101,6 +102,7 @@ const AdminDashboard = () => {
     if (!settings.error) {
       setMaxWinnersPerDay(settings.maxWinnersPerDay);
       setAdminUsername(settings.username);
+      setRouletteAdminCode(settings.rouletteAdminCode || '1234'); // 룰렛 관리자 코드 설정
     } else {
       toast.error('관리자 설정을 불러오는데 실패했습니다.');
     }
@@ -197,7 +199,12 @@ const AdminDashboard = () => {
     const currentSettings = getAdminSettings();
     const passwordToSave = adminPassword || currentSettings.password;
 
-    const result = updateAdminSettings(maxWinnersPerDay, adminUsername, passwordToSave);
+    const result = updateAdminSettings(
+      maxWinnersPerDay, 
+      adminUsername, 
+      passwordToSave,
+      rouletteAdminCode
+    );
 
     if (!result.error) {
       toast.success('설정이 저장되었습니다.');
@@ -444,6 +451,18 @@ const AdminDashboard = () => {
                           onChange={(e) => setAdminPasswordConfirm(e.target.value)}
                           placeholder="새 비밀번호 확인"
                       />
+                    </div>
+
+                    <div className="admin-form-group">
+                      <label>룰렛 관리자 코드</label>
+                      <input
+                          type="text"
+                          className="admin-input"
+                          value={rouletteAdminCode}
+                          onChange={(e) => setRouletteAdminCode(e.target.value)}
+                          placeholder="룰렛 사용 시 필요한 관리자 코드"
+                      />
+                      <p className="admin-input-help">룰렛 참여 시 필요한 관리자 코드를 설정합니다.</p>
                     </div>
 
                     <button

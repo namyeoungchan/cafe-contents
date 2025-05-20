@@ -7,7 +7,8 @@ const defaultData = {
   adminSettings: {
     maxWinnersPerDay: 3,
     username: 'admin',
-    password: 'admin123'
+    password: 'admin123',
+    rouletteAdminCode: '1234' // 기본 룰렛 관리자 코드
   },
   
   // 경품 목록
@@ -142,13 +143,14 @@ export const getAdminSettings = () => {
 };
 
 // 관리자 설정 업데이트
-export const updateAdminSettings = (maxWinnersPerDay, username, password) => {
+export const updateAdminSettings = (maxWinnersPerDay, username, password, rouletteAdminCode) => {
   try {
     const data = getData();
     data.adminSettings = {
       maxWinnersPerDay,
       username,
-      password: password || data.adminSettings.password // 비밀번호가 비어있으면 기존 비밀번호 유지
+      password: password || data.adminSettings.password, // 비밀번호가 비어있으면 기존 비밀번호 유지
+      rouletteAdminCode: rouletteAdminCode || data.adminSettings.rouletteAdminCode // 관리자 코드가 비어있으면 기존 코드 유지
     };
     saveData(data);
     return { success: true };
