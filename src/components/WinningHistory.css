@@ -1,0 +1,150 @@
+.winning-history {
+  padding: 10px 0;
+  overflow-y: auto;
+  max-height: 100%;
+}
+
+.winning-history-title {
+  font-size: 1.4rem;
+  margin-bottom: 16px;
+  color: var(--primary-color);
+  text-align: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.winning-history-loading,
+.winning-history-error,
+.winning-history-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 0;
+  text-align: center;
+  min-height: 150px;
+}
+
+.winning-history-loading .loading-spinner {
+  margin-bottom: 15px;
+}
+
+.winning-history-empty {
+  color: #777;
+  font-style: italic;
+}
+
+.winning-history-error {
+  color: #e74c3c;
+}
+
+.winning-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 10px; /* 하단 여백 추가 */
+  overflow-y: auto;
+}
+
+.winning-history-item {
+  display: flex;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  margin-right: 2px; /* 우측 여백 추가 */
+}
+
+.winning-history-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.winning-prize {
+  flex: 0 0 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 15px;
+  border-right: 1px solid #eee;
+}
+
+.winning-details {
+  flex: 1;
+  padding-left: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.prize-badge {
+  display: inline-block;
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 0.85rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.prize-badge.no-prize {
+  background-color: #ccc;
+  color: #666;
+}
+
+.winning-date {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.winning-order {
+  font-size: 0.8rem;
+  color: #777;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 5px;
+}
+
+.status-badge.used {
+  background-color: #e6f7e6;
+  color: #2c662d;
+}
+
+.status-badge.unused {
+  background-color: #f8f8f8;
+  color: #777;
+  border: 1px solid #ddd;
+}
+
+@media (max-width: 576px) {
+  .winning-history-item {
+    flex-direction: column;
+  }
+  
+  .winning-prize {
+    flex: 0 0 auto;
+    padding-right: 0;
+    padding-bottom: 10px;
+    border-right: none;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 10px;
+  }
+  
+  .winning-details {
+    padding-left: 0;
+  }
+  
+  .winning-history-title {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+  }
+}
