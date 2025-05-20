@@ -25,7 +25,9 @@ jobs:
         run: npm ci  # npm ci는 package-lock.json을 정확히 사용합니다
 
       - name: Build 🏗️
-        run: npm run build
+        run: |
+          npm run build
+          touch build/.nojekyll  # .nojekyll 파일 추가
         env:
           CI: false  # 경고를 오류로 처리하지 않도록 설정
 

@@ -1,7 +1,7 @@
 {
   "name": "cafe-content-app",
   "version": "1.0.0",
-  "homepage": "https://namyoungchan.github.io/cafe-contents",
+  "homepage": "https://namyeoungchan.github.io/cafe-contents",
   "description": "카페에서 즐길 수 있는 컨텐츠 앱",
   "private": true,
   "browser": {
@@ -30,7 +30,8 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build --repo git@github.com:namyeoungchan/cafe-contents.git --git git -f -m 'Auto-deploy: [skip ci]'",
     "deploy:clean": "node deploy.js",
-    "deploy:manual": "node manual-deploy.js"
+    "deploy:manual": "node manual-deploy.js",
+    "deploy:improved": "node improved-deploy.js"
   },
   "eslintConfig": {
     "extends": [
