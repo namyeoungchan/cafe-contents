@@ -28,7 +28,8 @@
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-      "deploy": "gh-pages -d build --force"
+    "deploy": "gh-pages -d build --git git -f -m 'Auto-deploy: [skip ci]'",
+    "deploy:clean": "node deploy.js"
   },
   "eslintConfig": {
     "extends": [
