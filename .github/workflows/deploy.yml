@@ -1,0 +1,37 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # 기본 브랜치명에 맞게 조정하세요 (main 또는 master)
+  workflow_dispatch:  # 수동으로 워크플로우를 트리거할 수 있습니다
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 🔧
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'  # 프로젝트에 적합한 Node.js 버전을 사용하세요
+
+      - name: Install Dependencies 📦
+        run: npm ci  # npm ci는 package-lock.json을 정확히 사용합니다
+
+      - name: Build 🏗️
+        run: npm run build
+        env:
+          CI: false  # 경고를 오류로 처리하지 않도록 설정
+
+      - name: Deploy to GitHub Pages 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: build  # 배포할 폴더
+          branch: gh-pages  # 배포할 브랜치
+          clean: true  # 기존 파일 정리

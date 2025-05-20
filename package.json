@@ -28,8 +28,9 @@
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build --git git -f -m 'Auto-deploy: [skip ci]'",
-    "deploy:clean": "node deploy.js"
+    "deploy": "gh-pages -d build --repo git@github.com:namyeoungchan/cafe-contents.git --git git -f -m 'Auto-deploy: [skip ci]'",
+    "deploy:clean": "node deploy.js",
+    "deploy:manual": "node manual-deploy.js"
   },
   "eslintConfig": {
     "extends": [

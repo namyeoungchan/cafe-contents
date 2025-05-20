@@ -11,7 +11,14 @@ const options = {
   branch: 'gh-pages',
   message: 'Auto-deploy: [skip ci]',
   force: true,
-  add: true // 기존 파일을 덮어쓰지 않고 새 파일 추가 (중요: 기존 콘텐츠 유지)
+  add: true, // 기존 파일을 덮어쓰지 않고 새 파일 추가 (중요: 기존 콘텐츠 유지)
+  repo: 'git@github.com:namyeoungchan/cafe-contents.git', // SSH URL 사용
+  silent: false,
+  git: 'git',
+  user: {
+    name: 'namyeoungchan',
+    email: 'skadudcks321@gmail.com'
+  }
 };
 
 // 빌드 폴더 배포
